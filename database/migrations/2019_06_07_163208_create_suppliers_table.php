@@ -16,6 +16,10 @@ class CreateSuppliersTable extends Migration
         Schema::create('supplier', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->text('description');
+            $table->string('bank_code');
+            $table->string('recipient_code');
+            $table->string('account_number');
             $table->timestamps();
         });
     }
