@@ -48,7 +48,7 @@
                                 <th scope="col">#</th>
                                 <th scope="col">Supplier name</th>
                                 <th scope="col">Description</th>
-                                <th scope="col">Last payment</th>
+                                <!-- <th scope="col">Last payment</th> -->
                                 <th scope="col"></th>
                             </tr>
                         </thead>
@@ -66,7 +66,7 @@
                                 <th scope="row">1</th>
                                 <td>Mark</td>
                                 <td>Otto</td>
-                                <td>@mdo</td>
+                                <!-- <td>@mdo</td> -->
                                 <td>
                                     <button class="btn btn-primary">Pay</button>
                                 </td>
