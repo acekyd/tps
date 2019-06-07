@@ -21,7 +21,10 @@
                             Bank: <br>
                             <select name="bank" id="bank">
                                 <option value="">-- Select bank --</option>
-                                <option value="023">GTB</option>
+                                @foreach ($banks as $bank)
+                                    <option value="{{ $bank['code'] }}">{{ $bank['name']}}</option>
+                                @endforeach
+
                             </select>
                         </label>
                         <label for="acc_no">
