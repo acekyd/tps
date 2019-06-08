@@ -38,11 +38,6 @@
             </div>
         </div>
         <div class="col-md-8">
-            @if (1)
-            <div class="alert alert-warning" role="alert">
-                You have not added any suppliers yet
-            </div>
-            @endif
             @if ($errors->any())
             <div class="alert alert-danger">
                 <ul>
