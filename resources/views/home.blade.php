@@ -9,6 +9,7 @@
 
                 <div class="card-body">
                     <form action="" method="post">
+                        {{ csrf_field() }}
                         <label for="name">
                             Name: <br>
                             <input type="text" name="name" />
@@ -19,17 +20,17 @@
                         </label>
                         <label for="bank">
                             Bank: <br>
-                            <select name="bank" id="bank">
+                            <select name="bank_code" id="bank_code">
                                 <option value="">-- Select bank --</option>
                                 @foreach ($banks as $bank)
-                                    <option value="{{ $bank['code'] }}">{{ $bank['name']}}</option>
+                                <option value="{{ $bank['code'] }}">{{ $bank['name']}}</option>
                                 @endforeach
 
                             </select>
                         </label>
                         <label for="acc_no">
                             Account no: <br>
-                            <input type="text" name="acc_no" />
+                            <input type="text" name="account_number" />
                         </label>
                         <input type="submit" value="submit">
                     </form>
@@ -42,6 +43,22 @@
                 You have not added any suppliers yet
             </div>
             @endif
+            @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            @if(session()->has('message'))
+            <div class="alert alert-info">
+                {{ session()->get('message') }}
+            </div>
+            @endif
+
             <div class="card">
                 <div class="card-header">Dashboard</div>
                 <div class="card-body">
