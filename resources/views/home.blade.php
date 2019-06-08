@@ -60,7 +60,6 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">#</th>
                                 <th scope="col">Supplier name</th>
                                 <th scope="col">Description</th>
                                 <!-- <th scope="col">Last payment</th> -->
@@ -68,24 +67,17 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @foreach ($suppliers as $supplier)
                             <tr>
-                                <th scope="row">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>@mdo</td>
+                                <td>{{ $supplier['name']}}</td>
+                                <td>{{ $supplier['description']}}</td>
                                 <td>
-                                    <button class="btn btn-primary">Pay</button>
+                                    <a href="/{{$supplier['id']/pay">
+                                        <button class="btn btn-primary">Pay</button>
+                                    </a>
                                 </td>
                             </tr>
-                            <tr>
-                                <th scope="row">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <!-- <td>@mdo</td> -->
-                                <td>
-                                    <button class="btn btn-primary">Pay</button>
-                                </td>
-                            </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

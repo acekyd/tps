@@ -29,9 +29,15 @@ class HomeController extends Controller
      */
     public function index()
     {
+        $suppliers = Supplier::all();
+
         $banks = $this->getBanks();
+        $transfers = $this->listTransfers();
+
         $banks = $banks['data'];
-        return view('home', ['banks' => $banks]);
+        $transfers = $transfers['data'];
+
+        return view('home', ['banks' => $banks, 'suppliers' => $suppliers, 'transfers' => $transfers]);
     }
 
     /**
@@ -90,6 +96,25 @@ class HomeController extends Controller
         }
     }
 
+    private function listTransfers()
+    {
+        $secret_key = \Config::get('services.paystack.secret_key');
+        $url = "https://api.paystack.co/transfer";
+        $client = new Client(['header' => ['Authorization' => 'Bearer ' . $secret_key]]);
+
+        try {
+            $response = $client->request('GET', $url, []);
+            $status = $response->getStatusCode();
+            return json_decode($response->getBody(), true);
+        } catch (RequestException $e) {
+            // $responseBody = $e->getResponse()->getBody(true);
+
+            // return $responseBody;
+
+            return false;
+        }
+    }
+
     private function createRecipient($name, $description, $account_number, $bank_code)
     {
         $secret_key = \Config::get('services.paystack.secret_key');
@@ -118,6 +143,38 @@ class HomeController extends Controller
             $result = json_decode($response->getBody(), true);
             return $result['data'];
 
+        } catch (RequestException $e) {
+
+            $responseBody = json_decode($e->getResponse()->getBody(true), true);
+            return $responseBody['message'];
+        }
+    }
+
+    private function transfer($amount, $recipient)
+    {
+        $secret_key = \Config::get('services.paystack.secret_key');
+
+        $url = "https://api.paystack.co/transfer";
+        $client = new Client();
+        $headers = [
+            'Authorization' => 'Bearer ' . $secret_key,
+            'Content-Type'        => 'application/json',
+        ];
+        $data = [
+            'source' => 'balance',
+            'amount' => $amount,
+            'recipient' => $recipient
+        ];
+
+        try {
+            $response = $client->request('POST', $url, [
+                'headers' => $headers,
+                'json' => $data
+            ]);
+
+            $status = $response->getStatusCode();
+            $result = json_decode($response->getBody(), true);
+            return $result['data'];
         } catch (RequestException $e) {
 
             $responseBody = json_decode($e->getResponse()->getBody(true), true);
