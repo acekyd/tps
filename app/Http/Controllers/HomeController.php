@@ -12,6 +12,10 @@ use App\Supplier;
 
 class HomeController extends Controller
 {
+
+    private $secret_key;
+    private $client;
+    private $headers;
     /**
      * Create a new controller instance.
      *
@@ -20,6 +24,12 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->secret_key = \Config::get('services.paystack.secret_key');
+        $this->client = new Client();
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $this->secret_key,
+            'Content-Type'        => 'application/json',
+        ];
     }
 
     /**
@@ -114,36 +124,25 @@ class HomeController extends Controller
 
     private function getBanks()
     {
-        $secret_key = \Config::get('services.paystack.secret_key');
         $url = "https://api.paystack.co/bank";
-        $client = new Client();
 
         try {
-            $response = $client->request('GET', $url, []);
+            $response = $this->client->request('GET', $url, []);
             $status = $response->getStatusCode();
             return json_decode($response->getBody(), true);
 
         } catch (RequestException $e) {
-            // $responseBody = $e->getResponse()->getBody(true);
-
-            // return $responseBody;
-
             return false;
         }
     }
 
     private function listTransfers()
     {
-        $secret_key = \Config::get('services.paystack.secret_key');
         $url = "https://api.paystack.co/transfer";
-        $client = new Client();
-        $headers = [
-            'Authorization' => 'Bearer ' . $secret_key,
-        ];
 
         try {
-            $response = $client->request('GET', $url, [
-                'headers' => $headers,
+            $response = $this->client->request('GET', $url, [
+                'headers' => $this->headers,
             ]);
             $status = $response->getStatusCode();
             return json_decode($response->getBody(), true);
@@ -155,14 +154,7 @@ class HomeController extends Controller
 
     private function createRecipient($name, $description, $account_number, $bank_code)
     {
-        $secret_key = \Config::get('services.paystack.secret_key');
-
         $url = "https://api.paystack.co/transferrecipient";
-        $client = new Client();
-        $headers = [
-            'Authorization' => 'Bearer ' . $secret_key,
-            'Content-Type'        => 'application/json',
-        ];
         $data = [
             'type' => 'nuban',
             'description' => $description,
@@ -172,8 +164,8 @@ class HomeController extends Controller
         ];
 
         try {
-            $response = $client->request('POST', $url, [
-                'headers' => $headers,
+            $response = $this->client->request('POST', $url, [
+                'headers' => $this->headers,
                 'json' => $data
             ]);
 
@@ -182,7 +174,6 @@ class HomeController extends Controller
             return $result['data'];
 
         } catch (RequestException $e) {
-
             $responseBody = json_decode($e->getResponse()->getBody(true), true);
             return $responseBody['message'];
         }
@@ -190,14 +181,8 @@ class HomeController extends Controller
 
     private function transfer($amount, $recipient)
     {
-        $secret_key = \Config::get('services.paystack.secret_key');
-
         $url = "https://api.paystack.co/transfer";
-        $client = new Client();
-        $headers = [
-            'Authorization' => 'Bearer ' . $secret_key,
-            'Content-Type'        => 'application/json',
-        ];
+
         $data = [
             'source' => 'balance',
             'amount' => $amount,
@@ -205,8 +190,8 @@ class HomeController extends Controller
         ];
 
         try {
-            $response = $client->request('POST', $url, [
-                'headers' => $headers,
+            $response = $this->client->request('POST', $url, [
+                'headers' => $this->headers,
                 'json' => $data
             ]);
 
@@ -222,22 +207,16 @@ class HomeController extends Controller
 
     private function confirmTransfer($otp, $transfer_code)
     {
-        $secret_key = \Config::get('services.paystack.secret_key');
-
         $url = "https://api.paystack.co/transfer/finalize_transfer";
-        $client = new Client();
-        $headers = [
-            'Authorization' => 'Bearer ' . $secret_key,
-            'Content-Type'        => 'application/json',
-        ];
+
         $data = [
             'otp' => $otp,
             'transfer_code' => $transfer_code,
         ];
 
         try {
-            $response = $client->request('POST', $url, [
-                'headers' => $headers,
+            $response = $this->client->request('POST', $url, [
+                'headers' => $this->headers,
                 'json' => $data
             ]);
 
