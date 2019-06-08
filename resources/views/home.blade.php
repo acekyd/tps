@@ -72,7 +72,7 @@
                                 <td>{{ $supplier['name']}}</td>
                                 <td>{{ $supplier['description']}}</td>
                                 <td>
-                                    <a href="/{{$supplier['id']/pay">
+                                    <a href="/{{ $supplier['id'] }}/pay">
                                         <button class="btn btn-primary">Pay</button>
                                     </a>
                                 </td>
@@ -82,6 +82,36 @@
                     </table>
                 </div>
             </div>
+
+            <br>
+
+            @if(count($transfers) > 0)
+            <div class="card">
+                <div class="card-header">Transfers</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Supplier name</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($transfers as $transfer)
+                            <tr>
+                                <td>{{ $transfer['recipient']['name']}}</td>
+                                <td>NGN{{ number_format($transfer['amount'] / 100)}}</td>
+                                <td>{{ \Carbon\Carbon::parse($transfer['createdAt'])->toDateTimeString() }}</td>
+                                <td>{{ $transfer['status'] }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>

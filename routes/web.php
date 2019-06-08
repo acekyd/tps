@@ -12,7 +12,7 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('home');
 });
 
 Auth::routes();
@@ -20,3 +20,7 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 Route::post('/home', 'HomeController@store')->name('add-supplier');
+
+Route::get('/{id}/pay', 'HomeController@view_pay')->name('view-pay');
+Route::post('/{id}/pay', 'HomeController@make_payment')->name('make-payment');
+Route::post('/{id}/pay/confirm', 'HomeController@confirm')->name('confirm');

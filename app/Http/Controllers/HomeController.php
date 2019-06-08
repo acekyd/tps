@@ -61,7 +61,6 @@ class HomeController extends Controller
 
         $recipient = $this->createRecipient($supplier->name, $supplier->description, $supplier->account_number, $supplier->bank_code);
 
-
         if(is_array($recipient))
         {
             $supplier->recipient_code = $recipient['recipient_code'];
@@ -72,15 +71,52 @@ class HomeController extends Controller
        return redirect()->back()->with('message', $recipient);
     }
 
+    public function view_pay(Request $request)
+    {
+        $supplier = Supplier::find($request->id);
+        return view('pay', ['supplier' => $supplier]);
+    }
+
+    public function make_payment(Request $request)
+    {
+        $validatedData = $request->validate([
+            'amount' => 'required|numeric',
+        ]);
+        $supplier = Supplier::find($request->id);
+        $amount = $request->amount;
+        $amount_in_kobo = $amount*100;
+        $transaction = $this->transfer($amount_in_kobo, $supplier['recipient_code']);
+
+        //if $transaction['status'] is pending redirect to homepage. If OTP, redirect to otp page
+        if (is_array( $transaction)) {
+            if($transaction['status'] == "otp")
+            {
+                return view('otp', ['supplier' => $supplier, 'transaction' => $transaction]);
+            }
+            else return redirect()->route('home')->with('message', "Payment complete.");
+        }
+        else return redirect()->back()->with('message', $transaction);
+    }
+
+    public function confirm(Request $request)
+    {
+        $validatedData = $request->validate([
+            'otp' => 'required'
+        ]);
+
+        $transaction = $this->confirmTransfer($request->otp, $request->transfer_code);
+        if (is_array($transaction)) {
+            return redirect()->route('home')->with('message', "Payment complete.");
+        }
+        return redirect()->back()->with('message', $transaction);
+    }
 
 
-
-
-
-    private function getBanks() {
+    private function getBanks()
+    {
         $secret_key = \Config::get('services.paystack.secret_key');
         $url = "https://api.paystack.co/bank";
-        $client = new Client(['header' =>['Authorization' => 'Bearer ' . $secret_key]]);
+        $client = new Client();
 
         try {
             $response = $client->request('GET', $url, []);
@@ -100,18 +136,20 @@ class HomeController extends Controller
     {
         $secret_key = \Config::get('services.paystack.secret_key');
         $url = "https://api.paystack.co/transfer";
-        $client = new Client(['header' => ['Authorization' => 'Bearer ' . $secret_key]]);
+        $client = new Client();
+        $headers = [
+            'Authorization' => 'Bearer ' . $secret_key,
+        ];
 
         try {
-            $response = $client->request('GET', $url, []);
+            $response = $client->request('GET', $url, [
+                'headers' => $headers,
+            ]);
             $status = $response->getStatusCode();
             return json_decode($response->getBody(), true);
         } catch (RequestException $e) {
-            // $responseBody = $e->getResponse()->getBody(true);
-
-            // return $responseBody;
-
-            return false;
+            $responseBody = json_decode($e->getResponse()->getBody(true), true);
+            return $responseBody['message'];
         }
     }
 
@@ -164,6 +202,37 @@ class HomeController extends Controller
             'source' => 'balance',
             'amount' => $amount,
             'recipient' => $recipient
+        ];
+
+        try {
+            $response = $client->request('POST', $url, [
+                'headers' => $headers,
+                'json' => $data
+            ]);
+
+            $status = $response->getStatusCode();
+            $result = json_decode($response->getBody(), true);
+            return $result['data'];
+        } catch (RequestException $e) {
+
+            $responseBody = json_decode($e->getResponse()->getBody(true), true);
+            return $responseBody['message'];
+        }
+    }
+
+    private function confirmTransfer($otp, $transfer_code)
+    {
+        $secret_key = \Config::get('services.paystack.secret_key');
+
+        $url = "https://api.paystack.co/transfer/finalize_transfer";
+        $client = new Client();
+        $headers = [
+            'Authorization' => 'Bearer ' . $secret_key,
+            'Content-Type'        => 'application/json',
+        ];
+        $data = [
+            'otp' => $otp,
+            'transfer_code' => $transfer_code,
         ];
 
         try {
