@@ -26,7 +26,7 @@
                     @if(!$supplier)
                     <p>Supplier not found</p>
                     @else
-                    <h3>Enter OTP Below: </h3>
+                    <h3>An OTP has been sent to you for confirmation! </h3>
                     <br>
                     <div class="col-md-6 offset-3">
                         <form action="/{{$supplier['id']}}/pay/confirm" method="post">
