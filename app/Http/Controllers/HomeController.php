@@ -43,11 +43,12 @@ class HomeController extends Controller
 
         $banks = $this->getBanks();
         $transfers = $this->listTransfers();
+        $balance = $this->getBalance();
 
         $banks = $banks['data'];
         $transfers = $transfers['data'];
 
-        return view('home', ['banks' => $banks, 'suppliers' => $suppliers, 'transfers' => $transfers]);
+        return view('home', ['banks' => $banks, 'suppliers' => $suppliers, 'transfers' => $transfers, 'balance' => $balance[0]]);
     }
 
     /**
@@ -63,6 +64,19 @@ class HomeController extends Controller
             'account_number' => 'required'
         ]);
 
+        $resolvedAccount = $this->resolveAccount($request->account_number, $request->bank_code);
+        dump($resolvedAccount);
+
+        if (is_array($resolvedAccount)) {
+            //redirect to confirm account.
+            return view('resolve', ['supplier' => $request->all(), 'resolvedAccount' => $resolvedAccount]);
+        }
+
+        return redirect()->back()->with('message', "An error occured while fetching Account details");
+    }
+
+    public function confirmSupplier(Request $request)
+    {
         $supplier = new Supplier();
         $supplier->name = $request->name;
         $supplier->description = $request->description;
@@ -71,20 +85,20 @@ class HomeController extends Controller
 
         $recipient = $this->createRecipient($supplier->name, $supplier->description, $supplier->account_number, $supplier->bank_code);
 
-        if(is_array($recipient))
-        {
+        if (is_array($recipient)) {
             $supplier->recipient_code = $recipient['recipient_code'];
             $supplier->save();
 
-            return redirect()->back()->with('message', 'Supplier created successfully');
+            return redirect()->route('home')->with('message', "Supplier created successfully.");
         }
-       return redirect()->back()->with('message', $recipient);
+        return redirect()->back()->with('message', $recipient);
     }
 
     public function view_pay(Request $request)
     {
         $supplier = Supplier::find($request->id);
-        return view('pay', ['supplier' => $supplier]);
+        $balance = $this->getBalance();
+        return view('pay', ['supplier' => $supplier, 'balance' => $balance[0]]);
     }
 
     public function make_payment(Request $request)
@@ -133,6 +147,46 @@ class HomeController extends Controller
 
         } catch (RequestException $e) {
             return false;
+        }
+    }
+
+    private function getBalance()
+    {
+        $url = "https://api.paystack.co/balance";
+
+        try {
+            $response = $this->client->request('GET', $url,[
+                'headers' => $this->headers,
+            ]);
+            $status = $response->getStatusCode();
+            $result = json_decode($response->getBody(), true);
+            return $result['data'];
+        } catch (RequestException $e) {
+            return false;
+        }
+    }
+
+    private function resolveAccount($account_number, $bank_code)
+    {
+        $url = "https://api.paystack.co/bank/resolve";
+
+        $data = [
+            'account_number' => $account_number,
+            'bank_code' => $bank_code,
+        ];
+
+        try {
+            $response = $this->client->request('GET', $url, [
+                'headers' => $this->headers,
+                'query' => $data
+            ]);
+            $status = $response->getStatusCode();
+            $result = json_decode($response->getBody(), true);
+            return $result['data'];
+
+        } catch (RequestException $e) {
+            $responseBody = json_decode($e->getResponse()->getBody(true), true);
+            return $responseBody['message'];
         }
     }
 

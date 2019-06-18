@@ -20,6 +20,7 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 Route::post('/home', 'HomeController@store')->name('add-supplier');
+Route::post('/confirm', 'HomeController@confirmSupplier')->name('confirm-supplier');
 
 Route::get('/{id}/pay', 'HomeController@view_pay')->name('view-pay');
 Route::post('/{id}/pay', 'HomeController@make_payment')->name('make-payment');

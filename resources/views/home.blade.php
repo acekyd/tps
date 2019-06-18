@@ -5,6 +5,14 @@
     <div class="row justify-content-center">
         <div class="col-md-3">
             <div class="card">
+                <div class="card-header">Account Balance</div>
+                <div class="card-body text-center">
+                    Your account balance is <br>
+                    <h3>{{ $balance['currency'] }}<br> {{number_format($balance['balance']) }}</h3>
+                </div>
+            </div>
+            <br />
+            <div class="card">
                 <div class="card-header">Add Supplier</div>
 
                 <div class="card-body">
